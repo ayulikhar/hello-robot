@@ -1,0 +1,299 @@
+<mujoco model="stretch kitchen scene">
+  <include file="stretch.xml"/>
+
+  <statistic center="0 0 1.0" extent="6.0" meansize="0.1"/>
+
+  <option timestep="0.002" integrator="implicitfast"/>
+
+  <visual>
+    <headlight diffuse="0.5 0.5 0.5" ambient="0.35 0.35 0.35" specular="0.1 0.1 0.1"/>
+    <rgba haze="0.15 0.20 0.25 1"/>
+    <global azimuth="140" elevation="-20"/>
+    <quality shadowsize="4096"/>
+  </visual>
+
+  <asset>
+    <!-- Skybox -->
+    <texture type="skybox" builtin="gradient" rgb1="0.55 0.70 0.85" rgb2="0.95 0.95 0.98" width="512" height="3072"/>
+
+    <!-- Floor: warm ceramic tile look via checker texture -->
+    <texture type="2d" name="tile_tex" builtin="checker" mark="edge" markrgb="0.85 0.82 0.78"
+             rgb1="0.92 0.88 0.82" rgb2="0.78 0.72 0.65" width="512" height="512"/>
+    <material name="tile_floor" texture="tile_tex" texrepeat="8 8" texuniform="true"
+              specular="0.2" shininess="0.3" reflectance="0.05"/>
+
+    <!-- Wall paint: soft off-white -->
+    <material name="wall_paint" rgba="0.94 0.92 0.88 1" specular="0.05" shininess="0.1"/>
+
+    <!-- Cabinet wood: warm oak tone (procedural, no external image) -->
+    <material name="cabinet_wood" rgba="0.55 0.38 0.24 1" specular="0.25" shininess="0.35"/>
+    <material name="cabinet_wood_dark" rgba="0.35 0.22 0.14 1" specular="0.2" shininess="0.3"/>
+
+    <!-- Countertop: light granite look -->
+    <material name="countertop" rgba="0.82 0.80 0.76 1" specular="0.55" shininess="0.7" reflectance="0.1"/>
+
+    <!-- Stainless steel for appliances / sink -->
+    <material name="stainless" rgba="0.78 0.80 0.82 1" specular="0.8" shininess="0.85" reflectance="0.25"/>
+    <material name="appliance_black" rgba="0.10 0.10 0.11 1" specular="0.6" shininess="0.6" reflectance="0.15"/>
+    <material name="stove_top" rgba="0.08 0.08 0.09 1" specular="0.7" shininess="0.7" reflectance="0.2"/>
+    <material name="burner" rgba="0.20 0.20 0.22 1" specular="0.3" shininess="0.4"/>
+
+    <!-- Fridge -->
+    <material name="fridge_body" rgba="0.88 0.88 0.90 1" specular="0.55" shininess="0.55" reflectance="0.12"/>
+    <material name="handle_metal" rgba="0.70 0.72 0.74 1" specular="0.85" shininess="0.9" reflectance="0.3"/>
+
+    <!-- Small object colors -->
+    <material name="mug_ceramic" rgba="0.92 0.90 0.86 1" specular="0.5" shininess="0.6"/>
+    <material name="can_red" rgba="0.78 0.15 0.15 1" specular="0.4" shininess="0.5"/>
+    <material name="can_green" rgba="0.20 0.55 0.28 1" specular="0.4" shininess="0.5"/>
+    <material name="bowl_blue" rgba="0.22 0.38 0.62 1" specular="0.5" shininess="0.6"/>
+    <material name="apple_red" rgba="0.75 0.12 0.10 1" specular="0.55" shininess="0.7"/>
+    <material name="box_cardboard" rgba="0.72 0.55 0.36 1" specular="0.1" shininess="0.2"/>
+  </asset>
+
+  <worldbody>
+    <!-- Lighting: overhead ceiling area light + directional fill -->
+    <light name="ceiling_main" pos="0 0 2.6" dir="0 0 -1" directional="false"
+           diffuse="0.7 0.7 0.65" specular="0.2 0.2 0.2" attenuation="1 0 0"/>
+    <light name="ceiling_fill" pos="1.5 1.5 2.6" dir="-0.3 -0.3 -1" directional="false"
+           diffuse="0.4 0.4 0.42" specular="0.1 0.1 0.1"/>
+    <light name="window_sun" pos="-3 3 2.5" dir="0.5 -0.5 -0.7" directional="true"
+           diffuse="0.55 0.55 0.50" specular="0.2 0.2 0.2"/>
+
+    <!-- Floor (kitchen tile) -->
+    <geom name="floor" size="0 0 0.05" type="plane" material="tile_floor"
+          friction="1.0 0.05 0.001" condim="3"/>
+
+    <!-- ==================== ROOM WALLS ====================
+         Kitchen is a ~6m x 6m room. Walls are 2.5m tall, 0.1m thick.
+         Room extent: x in [-3, 3], y in [-3, 3].
+         North wall (y=+3) is left open as the room entrance. -->
+    <body name="wall_south" pos="0 -3.0 1.25">
+      <geom type="box" size="3.0 0.05 1.25" material="wall_paint" contype="1" conaffinity="1"/>
+    </body>
+    <body name="wall_east" pos="3.0 0 1.25">
+      <geom type="box" size="0.05 3.0 1.25" material="wall_paint" contype="1" conaffinity="1"/>
+    </body>
+    <body name="wall_west" pos="-3.0 0 1.25">
+      <geom type="box" size="0.05 3.0 1.25" material="wall_paint" contype="1" conaffinity="1"/>
+    </body>
+    <!-- Partial north wall (leave a 1.4m opening from x=-0.7 to x=0.7) -->
+    <body name="wall_north_left" pos="-1.85 3.0 1.25">
+      <geom type="box" size="1.15 0.05 1.25" material="wall_paint" contype="1" conaffinity="1"/>
+    </body>
+    <body name="wall_north_right" pos="1.85 3.0 1.25">
+      <geom type="box" size="1.15 0.05 1.25" material="wall_paint" contype="1" conaffinity="1"/>
+    </body>
+
+    <!-- ==================== SOUTH-WALL COUNTER RUN ====================
+         Base cabinets + countertop along the south wall (y ~ -1.7).
+         Countertop height: 0.90m (standard kitchen counter).
+         Base cabinet depth: 0.60m, so front face is at y=-1.4. -->
+
+    <!-- Base cabinet block (south run) - the carcass -->
+    <body name="south_base_cabinet" pos="0 -1.70 0.43">
+      <geom type="box" size="1.90 0.30 0.43" material="cabinet_wood"/>
+      <!-- Toe kick recess (darker strip at bottom front) -->
+      <geom type="box" pos="0 -0.28 -0.36" size="1.90 0.02 0.07" material="cabinet_wood_dark"/>
+    </body>
+
+    <!-- Cabinet door details (visual only) on south base -->
+    <body name="south_cab_door_1" pos="-1.40 -1.395 0.48">
+      <geom type="box" size="0.42 0.008 0.32" material="cabinet_wood_dark"/>
+      <geom type="box" pos="0.35 -0.012 0" size="0.03 0.005 0.03" material="handle_metal"/>
+    </body>
+    <body name="south_cab_door_2" pos="-0.45 -1.395 0.48">
+      <geom type="box" size="0.42 0.008 0.32" material="cabinet_wood_dark"/>
+      <geom type="box" pos="-0.35 -0.012 0" size="0.03 0.005 0.03" material="handle_metal"/>
+    </body>
+    <body name="south_cab_drawer" pos="0.55 -1.395 0.72">
+      <geom type="box" size="0.42 0.008 0.10" material="cabinet_wood_dark"/>
+      <geom type="box" pos="0 -0.012 0" size="0.10 0.005 0.02" material="handle_metal"/>
+    </body>
+    <body name="south_cab_door_3" pos="0.55 -1.395 0.40">
+      <geom type="box" size="0.42 0.008 0.24" material="cabinet_wood_dark"/>
+      <geom type="box" pos="0.35 -0.012 0" size="0.03 0.005 0.03" material="handle_metal"/>
+    </body>
+    <body name="south_cab_door_4" pos="1.45 -1.395 0.48">
+      <geom type="box" size="0.42 0.008 0.32" material="cabinet_wood_dark"/>
+      <geom type="box" pos="-0.35 -0.012 0" size="0.03 0.005 0.03" material="handle_metal"/>
+    </body>
+
+    <!-- Countertop over south base cabinet -->
+    <body name="south_countertop" pos="0 -1.70 0.88">
+      <geom type="box" size="1.92 0.31 0.02" material="countertop" friction="0.9 0.05 0.001"/>
+    </body>
+
+    <!-- Backsplash strip along south wall above counter -->
+    <body name="south_backsplash" pos="0 -1.955 1.05">
+      <geom type="box" size="1.92 0.005 0.15" rgba="0.85 0.82 0.75 1"/>
+    </body>
+
+    <!-- ==================== UPPER CABINETS (south wall) ==================== -->
+    <body name="south_upper_cabinet" pos="-1.0 -1.85 1.75">
+      <geom type="box" size="0.85 0.15 0.30" material="cabinet_wood"/>
+      <!-- Two door fronts -->
+      <geom type="box" pos="-0.42 -0.155 0" size="0.42 0.005 0.28" material="cabinet_wood_dark"/>
+      <geom type="box" pos="0.42 -0.155 0" size="0.42 0.005 0.28" material="cabinet_wood_dark"/>
+      <!-- Handles -->
+      <geom type="box" pos="-0.07 -0.162 0" size="0.02 0.004 0.03" material="handle_metal"/>
+      <geom type="box" pos="0.07 -0.162 0" size="0.02 0.004 0.03" material="handle_metal"/>
+    </body>
+    <body name="south_upper_cabinet_2" pos="1.30 -1.85 1.75">
+      <geom type="box" size="0.55 0.15 0.30" material="cabinet_wood"/>
+      <geom type="box" pos="0 -0.155 0" size="0.52 0.005 0.28" material="cabinet_wood_dark"/>
+      <geom type="box" pos="0.35 -0.162 0" size="0.02 0.004 0.03" material="handle_metal"/>
+    </body>
+
+    <!-- ==================== STOVE (embedded in south counter, near center-right) ==================== -->
+    <!-- Stove sits in a cutout; we approximate by placing stove body flush with counter top.
+         Center of stove at x=0.55, y=-1.70. Stove is 0.60x0.60 with black glass top. -->
+    <body name="stove" pos="0.55 -1.70 0.89">
+      <!-- Stove top (black glass ceramic) -->
+      <geom name="stove_top_geom" type="box" size="0.30 0.30 0.015" material="stove_top"
+            friction="0.7 0.05 0.001"/>
+      <!-- Four burners -->
+      <geom type="cylinder" pos="-0.15 0.15 0.016" size="0.09 0.003" material="burner"/>
+      <geom type="cylinder" pos="0.15 0.15 0.016" size="0.09 0.003" material="burner"/>
+      <geom type="cylinder" pos="-0.15 -0.15 0.016" size="0.09 0.003" material="burner"/>
+      <geom type="cylinder" pos="0.15 -0.15 0.016" size="0.09 0.003" material="burner"/>
+      <!-- Control panel strip at back -->
+      <geom type="box" pos="0 0.28 0.03" size="0.30 0.02 0.02" material="stainless"/>
+      <!-- Control knobs -->
+      <geom type="cylinder" pos="-0.18 0.28 0.06" size="0.02 0.015" material="appliance_black"
+            euler="1.5708 0 0"/>
+      <geom type="cylinder" pos="-0.06 0.28 0.06" size="0.02 0.015" material="appliance_black"
+            euler="1.5708 0 0"/>
+      <geom type="cylinder" pos="0.06 0.28 0.06" size="0.02 0.015" material="appliance_black"
+            euler="1.5708 0 0"/>
+      <geom type="cylinder" pos="0.18 0.28 0.06" size="0.02 0.015" material="appliance_black"
+            euler="1.5708 0 0"/>
+    </body>
+
+    <!-- Range hood above stove -->
+    <body name="range_hood" pos="0.55 -1.87 1.55">
+      <geom type="box" size="0.32 0.13 0.10" material="stainless"/>
+      <geom type="box" pos="0 0 0.20" size="0.20 0.10 0.10" material="stainless"/>
+    </body>
+
+    <!-- ==================== SINK (embedded in south counter, left of stove) ==================== -->
+    <body name="sink" pos="-1.30 -1.70 0.87">
+      <!-- Sink basin: an open box formed from 5 thin walls (bottom + 4 sides). -->
+      <geom type="box" pos="0 0 -0.08" size="0.25 0.20 0.005" material="stainless"/>       <!-- bottom -->
+      <geom type="box" pos="-0.245 0 -0.04" size="0.005 0.20 0.05" material="stainless"/>  <!-- left -->
+      <geom type="box" pos="0.245 0 -0.04" size="0.005 0.20 0.05" material="stainless"/>   <!-- right -->
+      <geom type="box" pos="0 -0.195 -0.04" size="0.25 0.005 0.05" material="stainless"/>  <!-- front -->
+      <geom type="box" pos="0 0.195 -0.04" size="0.25 0.005 0.05" material="stainless"/>   <!-- back -->
+      <!-- Faucet -->
+      <geom type="cylinder" pos="0 0.18 0.08" size="0.015 0.08" material="handle_metal"/>
+      <geom type="cylinder" pos="0 0.10 0.15" size="0.012 0.10"
+            euler="1.5708 0 0" material="handle_metal"/>
+      <geom type="box" pos="0.05 0.18 0.14" size="0.02 0.008 0.015" material="handle_metal"/>
+    </body>
+
+    <!-- ==================== REFRIGERATOR (east wall, tall) ==================== -->
+    <body name="refrigerator" pos="2.55 1.30 0.90">
+      <geom type="box" size="0.35 0.35 0.90" material="fridge_body"/>
+      <!-- Upper freezer door split (horizontal seam at z_offset=+0.30 relative to body center) -->
+      <geom type="box" pos="0 -0.355 0.45" size="0.34 0.005 0.28" material="fridge_body"
+            rgba="0.85 0.85 0.87 1"/>
+      <geom type="box" pos="0 -0.355 -0.30" size="0.34 0.005 0.55" material="fridge_body"
+            rgba="0.85 0.85 0.87 1"/>
+      <!-- Door handles (vertical bars) -->
+      <geom type="cylinder" pos="-0.28 -0.365 0.45" size="0.012 0.18"
+            euler="1.5708 0 0" material="handle_metal"/>
+      <geom type="cylinder" pos="-0.28 -0.365 -0.30" size="0.012 0.35"
+            euler="1.5708 0 0" material="handle_metal"/>
+    </body>
+
+    <!-- ==================== KITCHEN ISLAND (center of room) ==================== -->
+    <!-- Island base cabinet -->
+    <body name="island_base" pos="0 0.30 0.43">
+      <geom type="box" size="0.70 0.40 0.43" material="cabinet_wood"/>
+      <!-- Toe kick -->
+      <geom type="box" pos="0 -0.38 -0.36" size="0.70 0.02 0.07" material="cabinet_wood_dark"/>
+      <geom type="box" pos="0 0.38 -0.36" size="0.70 0.02 0.07" material="cabinet_wood_dark"/>
+      <!-- Front doors -->
+      <geom type="box" pos="-0.35 -0.395 0.05" size="0.32 0.005 0.32" material="cabinet_wood_dark"/>
+      <geom type="box" pos="0.35 -0.395 0.05" size="0.32 0.005 0.32" material="cabinet_wood_dark"/>
+      <geom type="box" pos="-0.08 -0.402 0.05" size="0.02 0.004 0.03" material="handle_metal"/>
+      <geom type="box" pos="0.08 -0.402 0.05" size="0.02 0.004 0.03" material="handle_metal"/>
+    </body>
+    <!-- Island countertop (with a small overhang) -->
+    <body name="island_countertop" pos="0 0.30 0.88">
+      <geom type="box" size="0.75 0.45 0.02" material="countertop" friction="0.9 0.05 0.001"/>
+    </body>
+
+    <!-- ==================== SMALL OBJECTS FOR MANIPULATION ==================== -->
+    <!-- Mug on island counter -->
+    <body name="mug" pos="-0.30 0.20 0.945">
+      <freejoint/>
+      <inertial pos="0 0 0.04" mass="0.25" diaginertia="0.00018 0.00018 0.00012"/>
+      <geom type="cylinder" size="0.038 0.045" material="mug_ceramic"
+            friction="1.0 0.05 0.001" condim="4"/>
+      <!-- Handle (small torus approximation via a short capsule) -->
+      <geom type="capsule" pos="0.045 0 0" size="0.006 0.028" euler="1.5708 0 0"
+            material="mug_ceramic"/>
+    </body>
+
+    <!-- Soda can on island counter -->
+    <body name="can_red" pos="0.10 0.30 0.945">
+      <freejoint/>
+      <inertial pos="0 0 0.06" mass="0.35" diaginertia="0.00025 0.00025 0.00010"/>
+      <geom type="cylinder" size="0.033 0.062" material="can_red"
+            friction="0.7 0.05 0.001" condim="4"/>
+    </body>
+
+    <!-- Second can on south counter (near sink) -->
+    <body name="can_green" pos="-0.80 -1.65 0.965">
+      <freejoint/>
+      <inertial pos="0 0 0.06" mass="0.35" diaginertia="0.00025 0.00025 0.00010"/>
+      <geom type="cylinder" size="0.033 0.062" material="can_green"
+            friction="0.7 0.05 0.001" condim="4"/>
+    </body>
+
+    <!-- Bowl on island counter -->
+    <body name="bowl" pos="0.40 0.20 0.925">
+      <freejoint/>
+      <inertial pos="0 0 0.02" mass="0.30" diaginertia="0.00040 0.00040 0.00070"/>
+      <geom type="cylinder" size="0.075 0.020" material="bowl_blue"
+            friction="1.0 0.05 0.001" condim="4"/>
+      <!-- Bowl rim (slightly larger cylinder shell as visual) -->
+      <geom type="cylinder" pos="0 0 0.020" size="0.080 0.005" material="bowl_blue"/>
+    </body>
+
+    <!-- Apple on island -->
+    <body name="apple" pos="0.42 0.35 0.945">
+      <freejoint/>
+      <inertial pos="0 0 0" mass="0.18" diaginertia="0.00006 0.00006 0.00006"/>
+      <geom type="sphere" size="0.035" material="apple_red"
+            friction="1.0 0.05 0.001" condim="4"/>
+    </body>
+
+    <!-- Cereal-style cardboard box on south counter -->
+    <body name="cereal_box" pos="-0.80 -1.85 1.02">
+      <freejoint/>
+      <inertial pos="0 0 0.09" mass="0.40" diaginertia="0.0012 0.0010 0.0004"/>
+      <geom type="box" size="0.055 0.030 0.095" material="box_cardboard"
+            friction="0.8 0.05 0.001" condim="4"/>
+    </body>
+
+    <!-- Small storage box on floor near island (something to navigate around) -->
+    <body name="floor_box" pos="-1.20 0.80 0.15">
+      <freejoint/>
+      <inertial pos="0 0 0" mass="1.5" diaginertia="0.02 0.02 0.02"/>
+      <geom type="box" size="0.15 0.15 0.15" material="box_cardboard"
+            friction="0.9 0.05 0.001" condim="4"/>
+    </body>
+
+    <!-- Trash bin next to island (navigation obstacle) -->
+    <body name="trash_bin" pos="1.20 0.50 0.30">
+      <geom type="cylinder" size="0.18 0.30" material="appliance_black"/>
+      <geom type="cylinder" pos="0 0 0.31" size="0.19 0.01" material="handle_metal"/>
+    </body>
+  </worldbody>
+
+  <keyframe>
+    <key name='robot_start' qpos='-2.10 0 0.25 1 0 0 0  0 0 0.6 0 0 0 0  0 0 0 0 0 0 0 0 0 0  0 0 0  -0.30 0.20 0.945 1 0 0 0  0.10 0.30 0.945 1 0 0 0  -0.80 -1.65 0.965 1 0 0 0  0.40 0.20 0.925 1 0 0 0  0.42 0.35 0.945 1 0 0 0  -0.80 -1.85 1.02 1 0 0 0  -1.20 0.80 0.15 1 0 0 0'/>
+  </keyframe>
+</mujoco>
